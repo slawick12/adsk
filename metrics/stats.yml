@@ -1,0 +1,48 @@
+---
+- hosts: app
+  become: yes
+  vars:
+    metrics_storage_ip: 52.59.115.251
+    telegraf_url: https://dl.influxdata.com/telegraf/releases/telegraf-1.8.3-1.x86_64.rpm
+  tasks:
+    - name: "install telegraf"
+      yum:
+        name: "{{telegraf_url}}"
+        state: present
+    - template:
+        src: telegraf.conf
+        dest: /etc/telegraf/telegraf.conf
+    - service:
+        name: telegraf
+        state: restarted
+
+- hosts: metrics_storage
+  become: yes
+  vars:
+    influxdb_url: https://dl.influxdata.com/influxdb/releases/influxdb-1.7.1.x86_64.rpm
+  tasks:
+    - name: "install influxdb"
+      yum:
+        name: "{{influxdb_url}}"
+        state: present
+    - service:
+        name: influxdb
+        state: restarted
+
+- hosts: metrics_visualization
+  become: yes
+  vars:
+    grafana_url: https://s3-us-west-2.amazonaws.com/grafana-releases/release/grafana-5.3.4-1.x86_64.rpm
+  tasks:
+    - name: "install grafana"
+      yum:
+        name: "{{grafana_url}}"
+        state: present
+    - name: "change grafana port if not changed"
+      replace:
+        path: /etc/grafana/grafana.ini
+        regexp: ';http_port = 3000'
+        replace: 'http_port = 8080'
+    - service:
+        name: grafana-server
+        state: restarted

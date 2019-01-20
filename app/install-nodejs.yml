@@ -1,0 +1,46 @@
+---
+- hosts: nodejs-hosts
+  become: yes
+  vars:
+    node_source: ./install
+    node_version: "11"
+    server: app.js
+    server_port: 8080
+  tasks:
+    - name: Downloading NodeSource
+      get_url:
+        url: "https://rpm.nodesource.com/setup_{{node_version}}.x"
+        dest: "{{node_source}}"
+
+
+    - name: Setting execute right
+      file:
+        path: "{{node_source}}"
+        mode: "0777"
+
+
+    - name: Adding Node.js to yum repo 
+      command: "{{node_source}}"
+
+
+    - name: Installing Node.js
+      yum:
+        name: nodejs
+
+
+    - name: Copying basic server
+      template:
+        src: app.js
+        dest: "{{server}}"
+
+    - name: "Install forever (to run Node.js app)."
+      npm: name=forever global=yes state=present
+
+    - name: "Check list of Node.js apps running."
+      command: forever list
+      register: forever_list
+      changed_when: false
+
+    - name: "Start example Node.js app."
+      command: forever start ./app.js
+      when: "forever_list.stdout.find('./app.js') == -1"
