@@ -20,11 +20,7 @@
     - name: "copy conf file"
       template:
         src: nginx_server.conf
-        dest: "/etc/nginx/conf.d/virtual.conf"
-
-    -name: "ssl magic 1"
-      wget: 
-
+        dest: "/etc/nginx/nginx.conf"
 
     - name: "reload nginx server"
       service:
