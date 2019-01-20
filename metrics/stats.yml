@@ -16,6 +16,7 @@
         name: telegraf
         state: restarted
 
+
 - hosts: metrics_storage
   become: yes
   vars:
